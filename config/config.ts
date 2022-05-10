@@ -35,6 +35,51 @@ export default defineConfig({
   // umi routes: https://umijs.org/docs/routing
   routes: [
     {
+      name: 'Food',
+      icon: 'coffee',
+      path: '/food',
+      routes: [
+        {
+          name: 'company',
+          path: '/food/company',
+          component: './food/company',
+        },
+        {
+          name: 'restaurant',
+          path: '/food/restaurant',
+          component: './food/restaurant',
+        },
+        {
+          name: 'product',
+          path: '/food/product',
+          component: './food/product',
+        },
+      ],
+    },
+    {
+      name: 'account',
+      icon: 'user',
+      path: '/account',
+      routes: [
+        {
+          path: '/account',
+          redirect: '/account/center',
+        },
+        {
+          name: 'center',
+          icon: 'smile',
+          path: '/account/center',
+          component: './account/center',
+        },
+        {
+          name: 'settings',
+          icon: 'smile',
+          path: '/account/settings',
+          component: './account/settings',
+        },
+      ],
+    },
+    {
       path: '/user',
       layout: false,
       routes: [
@@ -253,29 +298,6 @@ export default defineConfig({
           icon: 'smile',
           path: '/exception/500',
           component: './exception/500',
-        },
-      ],
-    },
-    {
-      name: 'account',
-      icon: 'user',
-      path: '/account',
-      routes: [
-        {
-          path: '/account',
-          redirect: '/account/center',
-        },
-        {
-          name: 'center',
-          icon: 'smile',
-          path: '/account/center',
-          component: './account/center',
-        },
-        {
-          name: 'settings',
-          icon: 'smile',
-          path: '/account/settings',
-          component: './account/settings',
         },
       ],
     },
