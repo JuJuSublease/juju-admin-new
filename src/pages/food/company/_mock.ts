@@ -10,20 +10,9 @@ const genList = (current: number, pageSize: number) => {
     const index = (current - 1) * 10 + i;
     tableListDataSource.push({
       key: index,
-      disabled: i % 6 === 0,
-      href: 'https://ant.design',
-      avatar: [
-        'https://gw.alipayobjects.com/zos/rmsportal/eeHMaZBwmTvLdIwMfBpg.png',
-        'https://gw.alipayobjects.com/zos/rmsportal/udxAbMEhpwthVVcjLXik.png',
-      ][i % 2],
-      name: `TradeCode ${index}`,
-      owner: '曲丽丽',
-      desc: '这是一段描述',
-      callNo: Math.floor(Math.random() * 1000),
-      status: (Math.floor(Math.random() * 10) % 4).toString(),
-      updatedAt: new Date(),
+      componyName: '这是一段描述',
+      active: Math.random() < 0.5,
       createdAt: new Date(),
-      progress: Math.ceil(Math.random() * 100),
     });
   }
   tableListDataSource.reverse();
@@ -83,10 +72,6 @@ function getRule(req: Request, res: Response, u: string) {
     }
   }
 
-  if (params.name) {
-    dataSource = dataSource.filter((data) => data.name.includes(params.name || ''));
-  }
-
   let finalPageSize = 10;
   if (params.pageSize) {
     finalPageSize = parseInt(`${params.pageSize}`, 10);
@@ -110,7 +95,7 @@ function postRule(req: Request, res: Response, u: string, b: Request) {
   }
 
   const body = (b && b.body) || req.body;
-  const { name, desc, key } = body;
+  const { name, componyName, key } = body;
 
   switch (req.method) {
     /* eslint no-case-declarations:0 */
@@ -119,22 +104,11 @@ function postRule(req: Request, res: Response, u: string, b: Request) {
       break;
     case 'POST':
       (() => {
-        const i = Math.ceil(Math.random() * 10000);
         const newRule = {
           key: tableListDataSource.length,
-          href: 'https://ant.design',
-          avatar: [
-            'https://gw.alipayobjects.com/zos/rmsportal/eeHMaZBwmTvLdIwMfBpg.png',
-            'https://gw.alipayobjects.com/zos/rmsportal/udxAbMEhpwthVVcjLXik.png',
-          ][i % 2],
-          name,
-          owner: '曲丽丽',
-          desc,
-          callNo: Math.floor(Math.random() * 1000),
-          status: (Math.floor(Math.random() * 10) % 2).toString(),
-          updatedAt: new Date(),
+          componyName,
+          active: Math.random() < 0.5,
           createdAt: new Date(),
-          progress: Math.ceil(Math.random() * 100),
         };
         tableListDataSource.unshift(newRule);
         return res.json(newRule);
@@ -146,8 +120,8 @@ function postRule(req: Request, res: Response, u: string, b: Request) {
         let newRule = {};
         tableListDataSource = tableListDataSource.map((item) => {
           if (item.key === key) {
-            newRule = { ...item, desc, name };
-            return { ...item, desc, name };
+            newRule = { ...item, componyName, name };
+            return { ...item, componyName, name };
           }
           return item;
         });
@@ -169,8 +143,8 @@ function postRule(req: Request, res: Response, u: string, b: Request) {
 }
 
 export default {
-  'GET /api/rule': getRule,
-  'POST /api/rule': postRule,
-  'DELETE /api/rule': postRule,
-  'PUT /api/rule': postRule,
+  'GET /api/company/rule': getRule,
+  'POST /api/company/rule': postRule,
+  'DELETE /api/company/rule': postRule,
+  'PUT /api/company/rule': postRule,
 };

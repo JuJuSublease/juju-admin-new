@@ -3,7 +3,7 @@
 import { request } from 'umi';
 import { TableListItem } from './data';
 
-/** 获取规则列表 GET /api/rule */
+/** 获取规则列表 GET /api/product/rule */
 export async function rule(
   params: {
     // query
@@ -19,7 +19,7 @@ export async function rule(
     /** 列表的内容总数 */
     total?: number;
     success?: boolean;
-  }>('/api/rule', {
+  }>('/api/product/rule', {
     method: 'GET',
     params: {
       ...params,
@@ -28,27 +28,27 @@ export async function rule(
   });
 }
 
-/** 新建规则 PUT /api/rule */
+/** 新建规则 PUT /api/product/rule */
 export async function updateRule(data: { [key: string]: any }, options?: { [key: string]: any }) {
-  return request<TableListItem>('/api/rule', {
+  return request<TableListItem>('/api/product/rule', {
     data,
     method: 'PUT',
     ...(options || {}),
   });
 }
 
-/** 新建规则 POST /api/rule */
+/** 新建规则 POST /api/product/rule */
 export async function addRule(data: { [key: string]: any }, options?: { [key: string]: any }) {
-  return request<TableListItem>('/api/rule', {
+  return request<TableListItem>('/api/product/rule', {
     data,
     method: 'POST',
     ...(options || {}),
   });
 }
 
-/** 删除规则 DELETE /api/rule */
+/** 删除规则 DELETE /api/product/rule */
 export async function removeRule(data: { key: number[] }, options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/rule', {
+  return request<Record<string, any>>('/api/product/rule', {
     data,
     method: 'DELETE',
     ...(options || {}),

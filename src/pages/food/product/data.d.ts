@@ -1,16 +1,17 @@
 export type TableListItem = {
   key: number;
-  disabled?: boolean;
-  href: string;
-  avatar: string;
-  name: string;
-  owner: string;
-  desc: string;
-  callNo: number;
-  status: string;
-  updatedAt: Date;
+  restaurant: { name: string; address: string };
+  product: {
+    productType: 'COMBO' | 'REGULAR';
+    name: string;
+    desc: string;
+    price: string;
+    isPriceWithTax: boolean;
+    coverImageUrl: string;
+  };
+  taxRate: number;
+  active: boolean;
   createdAt: Date;
-  progress: number;
 };
 
 export type TableListPagination = {
@@ -27,7 +28,7 @@ export type TableListData = {
 export type TableListParams = {
   status?: string;
   name?: string;
-  desc?: string;
+  componyName?: string;
   key?: number;
   pageSize?: number;
   currentPage?: number;
