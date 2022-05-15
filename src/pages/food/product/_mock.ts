@@ -20,7 +20,7 @@ const genList = (current: number, pageSize: number) => {
         isPriceWithTax: Math.random() < 0.5,
         productType: Math.random() < 0.5 ? 'COMBO' : 'REGULAR',
       },
-      taxRate: faker.random.number(),
+      taxRate: faker.datatype.number(),
       active: Math.random() < 0.5,
       createdAt: new Date(),
     });
@@ -125,7 +125,7 @@ function postRule(req: Request, res: Response, u: string, b: Request) {
             isPriceWithTax: Math.random() < 0.5,
             productType: Math.random() < 0.5 ? 'COMBO' : 'REGULAR',
           },
-          taxRate: faker.random.number(),
+          taxRate: faker.datatype.number(),
           active: Math.random() < 0.5,
           createdAt: new Date(),
         };

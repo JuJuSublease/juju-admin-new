@@ -35,7 +35,7 @@ export default defineConfig({
   // umi routes: https://umijs.org/docs/routing
   routes: [
     {
-      name: 'Food',
+      name: 'food',
       icon: 'coffee',
       path: '/food',
       routes: [
@@ -60,24 +60,7 @@ export default defineConfig({
       name: 'account',
       icon: 'user',
       path: '/account',
-      routes: [
-        {
-          path: '/account',
-          redirect: '/account/center',
-        },
-        {
-          name: 'center',
-          icon: 'smile',
-          path: '/account/center',
-          component: './account/center',
-        },
-        {
-          name: 'settings',
-          icon: 'smile',
-          path: '/account/settings',
-          component: './account/settings',
-        },
-      ],
+      component: './account/settings',
     },
     {
       path: '/user',
@@ -107,35 +90,6 @@ export default defineConfig({
         },
         {
           component: '404',
-        },
-      ],
-    },
-    {
-      path: '/dashboard',
-      name: 'dashboard',
-      icon: 'dashboard',
-      routes: [
-        {
-          path: '/dashboard',
-          redirect: '/dashboard/analysis',
-        },
-        {
-          name: 'analysis',
-          icon: 'smile',
-          path: '/dashboard/analysis',
-          component: './dashboard/analysis',
-        },
-        {
-          name: 'monitor',
-          icon: 'smile',
-          path: '/dashboard/monitor',
-          component: './dashboard/monitor',
-        },
-        {
-          name: 'workplace',
-          icon: 'smile',
-          path: '/dashboard/workplace',
-          component: './dashboard/workplace',
         },
       ],
     },

@@ -14,8 +14,8 @@ const genList = (current: number, pageSize: number) => {
       componyName: '这是一段描述',
       restaurant: { name: faker.company.companyName(), address: faker.address.city() },
       contact: { tel: faker.phone.phoneNumber(), email: faker.internet.email() },
-      taxRate: faker.random.number(),
-      timezone: faker.random.arrayElement(['UTC+08:00', 'UTC+09:00', 'UTC+10:00']),
+      taxRate: faker.datatype.number(),
+      timezone: faker.helpers.arrayElement(['UTC+08:00', 'UTC+09:00', 'UTC+10:00']),
       active: Math.random() < 0.5,
       createdAt: new Date(),
     });
@@ -114,8 +114,8 @@ function postRule(req: Request, res: Response, u: string, b: Request) {
           componyName: '这是一段描述',
           restaurant: { name: faker.company.companyName(), address: faker.address.city() },
           contact: { tel: faker.phone.phoneNumber(), email: faker.internet.email() },
-          taxRate: faker.random.number(),
-          timezone: faker.random.arrayElement(['UTC+08:00', 'UTC+09:00', 'UTC+10:00']),
+          taxRate: faker.datatype.number(),
+          timezone: faker.helpers.arrayElement(['UTC+08:00', 'UTC+09:00', 'UTC+10:00']),
           active: Math.random() < 0.5,
           createdAt: new Date(),
         };
