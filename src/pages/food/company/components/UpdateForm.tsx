@@ -8,7 +8,7 @@ import {
   ProFormRadio,
   ProFormDateTimePicker,
 } from '@ant-design/pro-form';
-import type { TableListItem } from '../data';
+import type { FoodCompany } from '@/api/company';
 
 export type FormValueType = {
   target?: string;
@@ -16,13 +16,13 @@ export type FormValueType = {
   type?: string;
   time?: string;
   frequency?: string;
-} & Partial<TableListItem>;
+} & Partial<FoodCompany>;
 
 export type UpdateFormProps = {
   onCancel: (flag?: boolean, formVals?: FormValueType) => void;
   onSubmit: (values: FormValueType) => Promise<void>;
   updateModalVisible: boolean;
-  values: Partial<TableListItem>;
+  values: Partial<FoodCompany>;
 };
 
 const UpdateForm: React.FC<UpdateFormProps> = (props) => {
@@ -52,38 +52,39 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       }}
       onFinish={props.onSubmit}
     >
-      <StepsForm.StepForm
-        initialValues={{
-          name: props.values.name,
-          desc: props.values.desc,
-        }}
-        title="基本信息"
-      >
-        <ProFormText
-          name="name"
-          label="规则名称"
-          width="md"
-          rules={[
-            {
-              required: true,
-              message: '请输入规则名称！',
-            },
-          ]}
-        />
-        <ProFormTextArea
-          name="desc"
-          width="md"
-          label="规则描述"
-          placeholder="请输入至少五个字符"
-          rules={[
-            {
-              required: true,
-              message: '请输入至少五个字符的规则描述！',
-              min: 5,
-            },
-          ]}
-        />
-      </StepsForm.StepForm>
+      {props.values && (
+        <StepsForm.StepForm
+          initialValues={{
+            name: props.values.name,
+          }}
+          title="基本信息"
+        >
+          <ProFormText
+            name="name"
+            label="规则名称"
+            width="md"
+            rules={[
+              {
+                required: true,
+                message: '请输入规则名称！',
+              },
+            ]}
+          />
+          <ProFormTextArea
+            name="desc"
+            width="md"
+            label="规则描述"
+            placeholder="请输入至少五个字符"
+            rules={[
+              {
+                required: true,
+                message: '请输入至少五个字符的规则描述！',
+                min: 5,
+              },
+            ]}
+          />
+        </StepsForm.StepForm>
+      )}
       <StepsForm.StepForm
         initialValues={{
           target: '0',

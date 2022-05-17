@@ -7,15 +7,17 @@ import ProTable from '@ant-design/pro-table';
 import { ModalForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-form';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
-import { rule, addRule, updateRule, removeRule } from './service';
-import type { TableListItem, TableListPagination } from './data';
+import { addRule, updateRule, removeRule } from './service';
+import type { TableListPagination } from './data';
+import type { FoodCompany } from '@/api/company';
+import { getAllCompany } from '@/api/company';
 /**
  * 添加节点
  *
  * @param fields
  */
 
-const handleAdd = async (fields: TableListItem) => {
+const handleAdd = async (fields: FoodCompany) => {
   const hide = message.loading('正在添加');
 
   try {
@@ -35,7 +37,7 @@ const handleAdd = async (fields: TableListItem) => {
  * @param fields
  */
 
-const handleUpdate = async (fields: FormValueType, currentRow?: TableListItem) => {
+const handleUpdate = async (fields: FormValueType, currentRow?: FoodCompany) => {
   const hide = message.loading('正在配置');
 
   try {
@@ -58,13 +60,13 @@ const handleUpdate = async (fields: FormValueType, currentRow?: TableListItem) =
  * @param selectedRows
  */
 
-const handleRemove = async (selectedRows: TableListItem[]) => {
+const handleRemove = async (selectedRows: FoodCompany[]) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
 
   try {
     await removeRule({
-      key: selectedRows.map((row) => row.key),
+      key: selectedRows.map((row) => row.id),
     });
     hide();
     message.success('删除成功，即将刷新');
@@ -84,19 +86,19 @@ const TableList: React.FC = () => {
   const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<TableListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<TableListItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<FoodCompany | undefined>();
+  const [selectedRowsState, setSelectedRows] = useState<FoodCompany[]>([]);
   /** 国际化配置 */
 
-  const columns: ProColumns<TableListItem>[] = [
+  const columns: ProColumns<FoodCompany>[] = [
     {
       title: '#',
-      dataIndex: 'key',
+      dataIndex: 'id',
       render: (_, __, index) => index,
     },
     {
       title: 'Compony Name',
-      dataIndex: 'componyName',
+      dataIndex: 'name',
       valueType: 'textarea',
     },
     {
@@ -114,9 +116,9 @@ const TableList: React.FC = () => {
 
   return (
     <PageContainer>
-      <ProTable<TableListItem, TableListPagination>
+      <ProTable<FoodCompany, TableListPagination>
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="id"
         search={{
           labelWidth: 120,
         }}
@@ -131,7 +133,22 @@ const TableList: React.FC = () => {
             <PlusOutlined /> 新建
           </Button>,
         ]}
-        request={rule}
+        request={async () => {
+          // TODO
+          try {
+            const result = await getAllCompany({});
+            if (!result.success) {
+              throw new Error(result.message);
+            }
+
+            return {
+              data: result.foodCompanies,
+            };
+          } catch (e) {
+            message.error('请求失败，请重试');
+            throw e;
+          }
+        }}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -173,7 +190,7 @@ const TableList: React.FC = () => {
         visible={createModalVisible}
         onVisibleChange={handleModalVisible}
         onFinish={async (value) => {
-          const success = await handleAdd(value as TableListItem);
+          const success = await handleAdd(value as FoodCompany);
           if (success) {
             handleModalVisible(false);
             if (actionRef.current) {
@@ -215,7 +232,7 @@ const TableList: React.FC = () => {
           setCurrentRow(undefined);
         }}
         updateModalVisible={updateModalVisible}
-        values={currentRow || {}}
+        values={currentRow!}
       />
 
       <Drawer
