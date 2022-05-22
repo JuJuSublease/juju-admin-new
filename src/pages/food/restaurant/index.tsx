@@ -1,21 +1,24 @@
+// @ts-nocheck
+import type { Restaurant } from '@/api/restaurant';
+import { getAllRestaurants } from '@/api/restaurant';
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, message, Drawer, Tag } from 'antd';
-import React, { useState, useRef } from 'react';
-import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
-import type { ProColumns, ActionType } from '@ant-design/pro-table';
-import ProTable from '@ant-design/pro-table';
+import ProDescriptions from '@ant-design/pro-descriptions';
 import { ModalForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-form';
+import { FooterToolbar, PageContainer } from '@ant-design/pro-layout';
+import type { ActionType, ProColumns } from '@ant-design/pro-table';
+import ProTable from '@ant-design/pro-table';
+import { Button, Drawer, message, Tag } from 'antd';
+import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
-import { rule, addRule, updateRule, removeRule } from './service';
-import type { TableListItem, TableListPagination } from './data';
+
 /**
  * 添加节点
  *
  * @param fields
  */
 
-const handleAdd = async (fields: TableListItem) => {
+const handleAdd = async (fields: Restaurant) => {
   const hide = message.loading('正在添加');
 
   try {
@@ -35,7 +38,7 @@ const handleAdd = async (fields: TableListItem) => {
  * @param fields
  */
 
-const handleUpdate = async (fields: FormValueType, currentRow?: TableListItem) => {
+const handleUpdate = async (fields: FormValueType, currentRow?: Restaurant) => {
   const hide = message.loading('正在配置');
 
   try {
@@ -58,13 +61,13 @@ const handleUpdate = async (fields: FormValueType, currentRow?: TableListItem) =
  * @param selectedRows
  */
 
-const handleRemove = async (selectedRows: TableListItem[]) => {
+const handleRemove = async (selectedRows: Restaurant[]) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
 
   try {
     await removeRule({
-      key: selectedRows.map((row) => row.key),
+      key: selectedRows.map((row) => row.id),
     });
     hide();
     message.success('删除成功，即将刷新');
@@ -84,14 +87,14 @@ const TableList: React.FC = () => {
   const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<TableListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<TableListItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<Restaurant>();
+  const [selectedRowsState, setSelectedRows] = useState<Restaurant[]>([]);
   /** 国际化配置 */
 
-  const columns: ProColumns<TableListItem>[] = [
+  const columns: ProColumns<Restaurant>[] = [
     {
       title: '#',
-      dataIndex: 'key',
+      dataIndex: 'id',
       render: (_, __, index) => index,
     },
     {
@@ -102,32 +105,34 @@ const TableList: React.FC = () => {
     {
       title: 'Restaurant',
       dataIndex: 'restaurant',
-      renderText: (val: TableListItem['restaurant']) => (
-        <div>
-          <span>{val.name}</span>
-          <span>{val.address}</span>
-        </div>
-      ),
+      renderText: (_, record) => {
+        return (
+          <div>
+            <span>{record.name}</span>
+            <span>{record.address.address}</span>
+          </div>
+        );
+      },
     },
     {
       title: 'Contact',
       dataIndex: 'contact',
-      renderText: (val: TableListItem['contact']) => (
+      renderText: (_, record) => (
         <div>
-          <span>{val.tel}</span>
-          <span>{val.email}</span>
+          <span>{record.phone}</span>
+          <span>{record.email}</span>
         </div>
       ),
     },
     {
       title: 'Tax Rate',
       dataIndex: 'taxRate',
-      renderText: (val: TableListItem['taxRate']) => <div>{val}</div>,
+      renderText: (val: Restaurant['taxRate']) => <div>{val}</div>,
     },
     {
       title: 'Timezone',
       dataIndex: 'timezone',
-      renderText: (val: TableListItem['timezone']) => <div>{val}</div>,
+      renderText: (val: Restaurant['timezone']) => <div>{val}</div>,
     },
     {
       title: 'Active',
@@ -144,11 +149,19 @@ const TableList: React.FC = () => {
 
   return (
     <PageContainer>
-      <ProTable<TableListItem, TableListPagination>
+      <ProTable<Restaurant>
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="id"
         search={{
           labelWidth: 120,
+        }}
+        onRow={(record) => {
+          return {
+            onClick: () => {
+              setShowDetail(true);
+              setCurrentRow(record);
+            },
+          };
         }}
         toolBarRender={() => [
           <Button
@@ -161,7 +174,22 @@ const TableList: React.FC = () => {
             <PlusOutlined /> 新建
           </Button>,
         ]}
-        request={rule}
+        request={async () => {
+          // TODO
+          try {
+            const result = await getAllRestaurants({});
+            if (!result.success) {
+              throw new Error(result.message);
+            }
+
+            return {
+              data: result.foodRestaurants,
+            };
+          } catch (e) {
+            message.error('请求失败，请重试');
+            throw e;
+          }
+        }}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -203,7 +231,7 @@ const TableList: React.FC = () => {
         visible={createModalVisible}
         onVisibleChange={handleModalVisible}
         onFinish={async (value) => {
-          const success = await handleAdd(value as TableListItem);
+          const success = await handleAdd(value as Restaurant);
           if (success) {
             handleModalVisible(false);
             if (actionRef.current) {
@@ -260,7 +288,7 @@ const TableList: React.FC = () => {
           setCurrentRow(undefined);
         }}
         updateModalVisible={updateModalVisible}
-        values={currentRow || {}}
+        values={currentRow!}
       />
 
       <Drawer
@@ -272,7 +300,19 @@ const TableList: React.FC = () => {
         }}
         closable={false}
       >
-        1111
+        {currentRow?.name && (
+          <ProDescriptions<Restaurant>
+            column={1}
+            title={currentRow?.name}
+            request={async () => ({
+              data: currentRow || {},
+            })}
+            params={{
+              id: currentRow?.id,
+            }}
+            columns={columns.filter((c) => c.dataIndex !== 'option')}
+          />
+        )}
       </Drawer>
     </PageContainer>
   );

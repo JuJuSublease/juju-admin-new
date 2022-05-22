@@ -1,21 +1,23 @@
+// @ts-nocheck
+import type { Product } from '@/api/product';
+import { getAllProduct } from '@/api/product';
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, message, Drawer, Tag } from 'antd';
-import React, { useState, useRef } from 'react';
-import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
-import type { ProColumns, ActionType } from '@ant-design/pro-table';
-import ProTable from '@ant-design/pro-table';
 import { ModalForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-form';
+import { FooterToolbar, PageContainer } from '@ant-design/pro-layout';
+import type { ActionType, ProColumns } from '@ant-design/pro-table';
+import ProTable from '@ant-design/pro-table';
+import { Button, Drawer, message, Tag } from 'antd';
+import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
-import { rule, addRule, updateRule, removeRule } from './service';
-import type { TableListItem, TableListPagination } from './data';
+
 /**
  * 添加节点
  *
  * @param fields
  */
 
-const handleAdd = async (fields: TableListItem) => {
+const handleAdd = async (fields: Product) => {
   const hide = message.loading('正在添加');
 
   try {
@@ -35,7 +37,7 @@ const handleAdd = async (fields: TableListItem) => {
  * @param fields
  */
 
-const handleUpdate = async (fields: FormValueType, currentRow?: TableListItem) => {
+const handleUpdate = async (fields: FormValueType, currentRow?: Product) => {
   const hide = message.loading('正在配置');
 
   try {
@@ -58,13 +60,13 @@ const handleUpdate = async (fields: FormValueType, currentRow?: TableListItem) =
  * @param selectedRows
  */
 
-const handleRemove = async (selectedRows: TableListItem[]) => {
+const handleRemove = async (selectedRows: Product[]) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
 
   try {
     await removeRule({
-      key: selectedRows.map((row) => row.key),
+      key: selectedRows.map((row) => row.id),
     });
     hide();
     message.success('删除成功，即将刷新');
@@ -84,14 +86,14 @@ const TableList: React.FC = () => {
   const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<TableListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<TableListItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<Product>();
+  const [selectedRowsState, setSelectedRows] = useState<Product[]>([]);
   /** 国际化配置 */
 
-  const columns: ProColumns<TableListItem>[] = [
+  const columns: ProColumns<Product>[] = [
     {
       title: '#',
-      dataIndex: 'key',
+      dataIndex: 'id',
       render: (_, __, index) => index,
     },
     {
@@ -102,17 +104,17 @@ const TableList: React.FC = () => {
     {
       title: 'Restaurant',
       dataIndex: 'restaurant',
-      renderText: (val: TableListItem['restaurant']) => (
+      renderText: (_, record) => (
         <div>
-          <span>{val.name}</span>
-          <span>{val.address}</span>
+          <span>{record.foodRestaurant.name}</span>
+          <span>{record.foodRestaurant.address.address}</span>
         </div>
       ),
     },
     {
       title: 'Product',
       dataIndex: 'product',
-      renderText: (val: TableListItem['product']) => (
+      renderText: (_, record) => (
         <div style={{ display: 'flex', flexDirection: 'row' }}>
           <div
             style={{
@@ -123,18 +125,18 @@ const TableList: React.FC = () => {
             }}
           >
             <img
-              src={val.coverImageUrl}
+              src={record.imageUrl}
               alt="product"
               style={{ width: '100px', height: '80px', borderRadius: '8px' }}
             />
           </div>
           <div>
-            {val.productType === 'COMBO' && <Tag color={'blue'}>{val.productType}</Tag>}
-            {val.productType === 'REGULAR' && <Tag color={'orange'}>{val.productType}</Tag>}
-            <div>{val.name}</div>
-            <div>{val.desc}</div>
-            <div>{val.price}</div>
-            {val.isPriceWithTax && <Tag color={'red'}>Tax Included</Tag>}
+            {record.productType === 'COMBO' && <Tag color={'blue'}>{record.productType}</Tag>}
+            {record.productType === 'REGULAR' && <Tag color={'orange'}>{record.productType}</Tag>}
+            <div>{record.name}</div>
+            <div>{record.description}</div>
+            <div>{record.price}</div>
+            {record.isPriceWithTax && <Tag color={'red'}>Tax Included</Tag>}
           </div>
         </div>
       ),
@@ -142,7 +144,7 @@ const TableList: React.FC = () => {
     {
       title: 'Tax Rate',
       dataIndex: 'taxRate',
-      renderText: (val: TableListItem['taxRate']) => <div>{val}</div>,
+      renderText: (val: Product['taxRate']) => <div>{val as string}</div>,
     },
     {
       title: 'Active',
@@ -159,9 +161,9 @@ const TableList: React.FC = () => {
 
   return (
     <PageContainer>
-      <ProTable<TableListItem, TableListPagination>
+      <ProTable<Product>
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="id"
         search={{
           labelWidth: 120,
         }}
@@ -176,7 +178,22 @@ const TableList: React.FC = () => {
             <PlusOutlined /> 新建
           </Button>,
         ]}
-        request={rule}
+        request={async () => {
+          // TODO
+          try {
+            const result = await getAllProduct({});
+            if (!result.success) {
+              throw new Error(result.message);
+            }
+
+            return {
+              data: result.foodProducts,
+            };
+          } catch (e) {
+            message.error('请求失败，请重试');
+            throw e;
+          }
+        }}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -218,7 +235,7 @@ const TableList: React.FC = () => {
         visible={createModalVisible}
         onVisibleChange={handleModalVisible}
         onFinish={async (value) => {
-          const success = await handleAdd(value as TableListItem);
+          const success = await handleAdd(value as Product);
           if (success) {
             handleModalVisible(false);
             if (actionRef.current) {
@@ -273,7 +290,7 @@ const TableList: React.FC = () => {
           setCurrentRow(undefined);
         }}
         updateModalVisible={updateModalVisible}
-        values={currentRow || {}}
+        values={currentRow!}
       />
 
       <Drawer

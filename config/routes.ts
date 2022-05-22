@@ -4,14 +4,9 @@
     layout: false,
     routes: [
       {
-        path: '/user',
-        routes: [
-          {
-            name: 'login',
-            path: '/user/login',
-            component: './user/Login',
-          },
-        ],
+        name: 'login',
+        path: '/user/login',
+        component: './user/Login',
       },
       {
         component: './404',
@@ -19,10 +14,32 @@
     ],
   },
   {
-    path: '/welcome',
-    name: 'welcome',
-    icon: 'smile',
-    component: './Welcome',
+    name: 'food',
+    icon: 'coffee',
+    path: '/food',
+    routes: [
+      {
+        name: 'company',
+        path: '/food/company',
+        component: './food/company',
+      },
+      {
+        name: 'restaurant',
+        path: '/food/restaurant',
+        component: './food/restaurant',
+      },
+      {
+        name: 'product',
+        path: '/food/product',
+        component: './food/product',
+      },
+    ],
+  },
+  {
+    name: 'account',
+    icon: 'user',
+    path: '/account',
+    component: './account/settings',
   },
   {
     path: '/admin',
@@ -43,14 +60,8 @@
     ],
   },
   {
-    name: 'list.table-list',
-    icon: 'table',
-    path: '/list',
-    component: './TableList',
-  },
-  {
     path: '/',
-    redirect: '/welcome',
+    redirect: '/food/company',
   },
   {
     component: './404',

@@ -1,12 +1,12 @@
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { Alert, message, Tabs } from 'antd';
-import React, { useState } from 'react';
-import { ProFormText, LoginForm } from '@ant-design/pro-form';
-import { useIntl, history, FormattedMessage, SelectLang, useModel } from 'umi';
-import Footer from '@/components/Footer';
 import type { LoginParams } from '@/api';
 import { login } from '@/api';
-
+import Footer from '@/components/Footer';
+import { ERROR_CODE } from '@/constants/api';
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { LoginForm, ProFormText } from '@ant-design/pro-form';
+import { Alert, message, Tabs } from 'antd';
+import React, { useState } from 'react';
+import { FormattedMessage, history, SelectLang, useIntl, useModel } from 'umi';
 import styles from './index.less';
 
 const LoginMessage: React.FC<{
@@ -29,12 +29,12 @@ const DEFAULT_ACCOUNT_INFO = {
 };
 
 const Login: React.FC = () => {
-  const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
+  const [userLoginState, setUserLoginState] = useState<API.Failure | undefined>();
   const [type, setType] = useState<string>('account');
   const { initialState, setInitialState } = useModel('@@initialState');
 
   const intl = useIntl();
-  // Authorization
+
   const fetchUserInfo = async () => {
     const userInfo = await initialState?.fetchUserInfo?.();
     if (userInfo) {
@@ -48,8 +48,9 @@ const Login: React.FC = () => {
   const handleSubmit = async (values: LoginParams) => {
     try {
       // 登录
-      const msg = await login({ ...values });
-      if (msg.success) {
+      const result = await login(values);
+      if (result.success) {
+        localStorage.setItem('token', result.token);
         const defaultLoginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
           defaultMessage: '登录成功！',
@@ -63,9 +64,9 @@ const Login: React.FC = () => {
         history.push(redirect || '/');
         return;
       }
-      console.log(msg);
+      console.log(result);
       // 如果失败去设置用户错误信息
-      setUserLoginState(msg);
+      setUserLoginState(result);
     } catch (error) {
       const defaultLoginFailureMessage = intl.formatMessage({
         id: 'pages.login.failure',
@@ -107,15 +108,14 @@ const Login: React.FC = () => {
             />
           </Tabs>
 
-          {/* {(
-            TODO
+          {userLoginState?.error === ERROR_CODE.PASSWORD_ERROR && (
             <LoginMessage
               content={intl.formatMessage({
                 id: 'pages.login.accountLogin.errorMessage',
                 defaultMessage: `账户或密码错误(${DEFAULT_ACCOUNT_INFO.email}/${DEFAULT_ACCOUNT_INFO.password})`,
               })}
             />
-          )} */}
+          )}
           {type === 'account' && (
             <>
               <ProFormText

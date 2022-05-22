@@ -8,7 +8,7 @@ import {
   ProFormRadio,
   ProFormDateTimePicker,
 } from '@ant-design/pro-form';
-import type { TableListItem } from '../data';
+import type { Product } from '@/api/product';
 
 export type FormValueType = {
   target?: string;
@@ -16,13 +16,13 @@ export type FormValueType = {
   type?: string;
   time?: string;
   frequency?: string;
-} & Partial<TableListItem>;
+} & Partial<Product>;
 
 export type UpdateFormProps = {
   onCancel: (flag?: boolean, formVals?: FormValueType) => void;
   onSubmit: (values: FormValueType) => Promise<void>;
   updateModalVisible: boolean;
-  values: Partial<TableListItem>;
+  values: Partial<Product>;
 };
 
 const UpdateForm: React.FC<UpdateFormProps> = (props) => {
@@ -52,13 +52,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       }}
       onFinish={props.onSubmit}
     >
-      <StepsForm.StepForm
-        initialValues={{
-          name: props.values.name,
-          desc: props.values.desc,
-        }}
-        title="基本信息"
-      >
+      <StepsForm.StepForm title="基本信息">
         <ProFormText
           name="name"
           label="规则名称"

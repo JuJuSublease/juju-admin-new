@@ -1,16 +1,14 @@
-import { PlusOutlined } from '@ant-design/icons';
-import { Button, message, Drawer, Tag } from 'antd';
-import React, { useState, useRef } from 'react';
-import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
-import type { ProColumns, ActionType } from '@ant-design/pro-table';
-import ProTable from '@ant-design/pro-table';
-import { ModalForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-form';
-import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
-import { addRule, updateRule, removeRule } from './service';
-import type { TableListPagination } from './data';
 import type { FoodCompany } from '@/api/company';
-import { getAllCompany } from '@/api/company';
+import { createCompany, getAllCompany, updateCompany } from '@/api/company';
+import { PlusOutlined } from '@ant-design/icons';
+import ProDescriptions from '@ant-design/pro-descriptions';
+import { ModalForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-form';
+import { FooterToolbar, PageContainer } from '@ant-design/pro-layout';
+import type { ActionType, ProColumns } from '@ant-design/pro-table';
+import ProTable from '@ant-design/pro-table';
+import { Button, Drawer, message, Tag } from 'antd';
+import React, { useRef, useState } from 'react';
+import { FormattedMessage } from 'umi';
 /**
  * 添加节点
  *
@@ -21,7 +19,12 @@ const handleAdd = async (fields: FoodCompany) => {
   const hide = message.loading('正在添加');
 
   try {
-    await addRule({ ...fields });
+    const result = await createCompany({ ...fields });
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
     hide();
     message.success('添加成功');
     return true;
@@ -37,29 +40,34 @@ const handleAdd = async (fields: FoodCompany) => {
  * @param fields
  */
 
-const handleUpdate = async (fields: FormValueType, currentRow?: FoodCompany) => {
-  const hide = message.loading('正在配置');
+const handleUpdate = async (fields: FoodCompany, currentRow: FoodCompany) => {
+  const hide = message.loading('正在修改');
 
   try {
-    await updateRule({
-      ...currentRow,
+    const result = await updateCompany({
       ...fields,
+      id: currentRow.id,
     });
+
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
     hide();
-    message.success('配置成功');
+    message.success('修改成功');
     return true;
   } catch (error) {
     hide();
-    message.error('配置失败请重试！');
+    message.error('修改失败请重试！');
     return false;
   }
 };
+
 /**
  * 删除节点
  *
  * @param selectedRows
  */
-
 const handleRemove = async (selectedRows: FoodCompany[]) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
@@ -88,7 +96,7 @@ const TableList: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<FoodCompany | undefined>();
   const [selectedRowsState, setSelectedRows] = useState<FoodCompany[]>([]);
-  /** 国际化配置 */
+  /** 国际化更新 */
 
   const columns: ProColumns<FoodCompany>[] = [
     {
@@ -97,7 +105,7 @@ const TableList: React.FC = () => {
       render: (_, __, index) => index,
     },
     {
-      title: 'Compony Name',
+      title: 'Company Name',
       dataIndex: 'name',
       valueType: 'textarea',
     },
@@ -112,11 +120,28 @@ const TableList: React.FC = () => {
       dataIndex: 'createdAt',
       valueType: 'dateTime',
     },
+    {
+      title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Operating" />,
+      dataIndex: 'option',
+      valueType: 'option',
+      render: (_, record) => [
+        <a
+          key="config"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleUpdateModalVisible(true);
+            setCurrentRow(record);
+          }}
+        >
+          修改
+        </a>,
+      ],
+    },
   ];
 
   return (
     <PageContainer>
-      <ProTable<FoodCompany, TableListPagination>
+      <ProTable<FoodCompany>
         actionRef={actionRef}
         rowKey="id"
         search={{
@@ -148,6 +173,14 @@ const TableList: React.FC = () => {
             message.error('请求失败，请重试');
             throw e;
           }
+        }}
+        onRow={(record) => {
+          return {
+            onClick: () => {
+              setShowDetail(true);
+              setCurrentRow(record);
+            },
+          };
         }}
         columns={columns}
         rowSelection={{
@@ -207,14 +240,15 @@ const TableList: React.FC = () => {
             },
           ]}
           placeholder="Company Name"
-          name="componyName"
+          name="name"
           width="md"
         />
-        <ProFormCheckbox width="md" name="active">
+        <ProFormCheckbox width="md" name="active" initialValue={false}>
           Company Active
         </ProFormCheckbox>
       </ModalForm>
-      <UpdateForm
+
+      {/* <UpdateForm
         onSubmit={async (value) => {
           const success = await handleUpdate(value, currentRow);
 
@@ -233,7 +267,42 @@ const TableList: React.FC = () => {
         }}
         updateModalVisible={updateModalVisible}
         values={currentRow!}
-      />
+      /> */}
+
+      <ModalForm
+        title="Update Company"
+        width="400px"
+        visible={updateModalVisible}
+        onVisibleChange={handleUpdateModalVisible}
+        onFinish={async (value) => {
+          const success = await handleUpdate(
+            value as FoodCompany,
+            (currentRow || {}) as FoodCompany,
+          );
+          if (success) {
+            handleUpdateModalVisible(false);
+            if (actionRef.current) {
+              actionRef.current.reload();
+            }
+          }
+        }}
+        initialValues={currentRow}
+      >
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '规则名称为必填项',
+            },
+          ]}
+          placeholder="Company Name"
+          name="name"
+          width="md"
+        />
+        <ProFormCheckbox width="md" name="active" initialValue={false}>
+          Company Active
+        </ProFormCheckbox>
+      </ModalForm>
 
       <Drawer
         width={600}
@@ -244,7 +313,19 @@ const TableList: React.FC = () => {
         }}
         closable={false}
       >
-        1111
+        {currentRow?.name && (
+          <ProDescriptions<FoodCompany>
+            column={1}
+            title={currentRow?.name}
+            request={async () => ({
+              data: currentRow || {},
+            })}
+            params={{
+              id: currentRow?.id,
+            }}
+            columns={columns.filter((c) => c.dataIndex !== 'option')}
+          />
+        )}
       </Drawer>
     </PageContainer>
   );
